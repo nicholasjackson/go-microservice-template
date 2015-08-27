@@ -1,0 +1,4 @@
+microservice-template:
+  image: microservice-template
+  ports:
+    - "8001:8001"
