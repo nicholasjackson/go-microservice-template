@@ -34,6 +34,7 @@ def rename_in_files name, folder
       'go/src/github.com/nicholasjackson/microservice-template/server.go',
       'dockercompose/microservice-template/docker-compose.yml',
       'dockerfile/microservice-template/Dockerfile',
+      'dockerfile/microservice-template/supervisord.conf',
       '.ruby-gemset',
       'Rakefile',
     ]

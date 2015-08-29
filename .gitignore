@@ -1,0 +1,17 @@
+# go packages
+go/src/golang.org
+go/src/9fans.net
+go/src/github.com/golang
+go/src/github.com/nsf
+go/src/github.com/rogpeppe
+go/src/github.com/gorilla
+go/src/github.com/pmylund
+go/src/github.com/stretchr
+
+# binaries
+server
+go/bin
+go/pkg
+
+# other
+serverlog.txt
