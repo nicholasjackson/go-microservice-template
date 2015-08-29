@@ -21,3 +21,4 @@ go/pkg
 
 # other
 serverlog.txt
+.DS_Store

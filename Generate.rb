@@ -63,7 +63,15 @@ def confirm name,output
 end
 
 def copy_files destination
-  FileUtils.copy_entry './', destination
+  FileUtils.mkdir_p(destination) unless File.exists? destination
+  Dir.glob("./**/*").reject{|f| f['.git']}.each do |oldfile|
+    newfile = destination + '/' + oldfile.sub('./', '')
+    puts "Copying:#{oldfile} to #{newfile}"
+    File.file?(oldfile) ? FileUtils.copy(oldfile, newfile) : FileUtils.mkdir(newfile)
+  end
+  FileUtils.copy('.ruby-gemset', "#{destination}/.ruby-gemset")
+  FileUtils.copy('.ruby-version', "#{destination}/.ruby-version")
+  FileUtils.copy('.gitignore', "#{destination}/.gitignore")
 end
 
 def rename_files_and_folders name, destination
