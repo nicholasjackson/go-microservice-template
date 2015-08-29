@@ -17,6 +17,7 @@ RUN mv consul-template_0.10.0_linux_386/consul-template /bin/consul-template
 # Configure consul-template supervisor and nginx
 RUN mkdir -p /etc/service/nginx && mkdir -p /etc/service/consul-template && rm /etc/nginx/nginx.conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-ADD nginx.ctmpl /etc/consul-templates/nginx.ctmpl
+ADD config.ctmpl /microservice-template/config.ctmpl
+ADD config.json /microservice-template/config.json
 
 CMD ["/usr/bin/supervisord", "-c","/etc/supervisor/conf.d/supervisord.conf"]
