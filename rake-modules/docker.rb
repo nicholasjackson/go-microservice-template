@@ -58,7 +58,8 @@ def create_and_start_container
 		'Tty' => true,
 		"Binds" => [
 			"#{ROOTFOLDER}:/src",
-			"#{ROOTFOLDER}/go/src:/go/src"
+			"#{ROOTFOLDER}/go/src:/go/src",
+			"#{ROOTFOLDER}/api-blueprint:/api-blueprint"
 		],
 		"Env" => [
 			"API_CONFIG=/src/devconfig.json",

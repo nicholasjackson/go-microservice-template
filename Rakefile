@@ -61,6 +61,22 @@ task :run => [:build_server] do
 	end
 end
 
+task :docs do
+	container = get_container
+
+	begin
+		# Get go packages
+		ret = container.exec(['go','get','github.com/peterhellberg/hiro/main.go']) { |stream, chunk| puts "#{stream}: #{chunk}" }
+		raise Exception, 'Error running command' unless ret[2] == 0
+
+		# Build docs
+		ret = container.exec(['go','run','../../peterhellberg/hiro/main.go',"-input=/api-blueprint/#{DOCKER_IMAGE_NAME}.apib", "-output=/api-blueprint/#{DOCKER_IMAGE_NAME}.html"]) { |stream, chunk| puts "#{stream}: #{chunk}" }
+		raise Exception, 'Error running command' unless ret[2] == 0
+	ensure
+		container.delete(:force => true)
+	end
+end
+
 task :build_go_build_server do
 	p "Building Docker Image:- Dev Server"
 
