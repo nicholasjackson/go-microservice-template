@@ -66,7 +66,7 @@ task :docs do
 
 	begin
 		# Get go packages
-		ret = container.exec(['go','get','github.com/peterhellberg/hiro/main.go']) { |stream, chunk| puts "#{stream}: #{chunk}" }
+		ret = container.exec(['go','get','github.com/peterhellberg/hiro']) { |stream, chunk| puts "#{stream}: #{chunk}" }
 		raise Exception, 'Error running command' unless ret[2] == 0
 
 		# Build docs
