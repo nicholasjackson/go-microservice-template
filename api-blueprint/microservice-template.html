@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Hello API</title>
+		<meta name="description" content="A simple API demo">
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+		<style>
+			tt, pre, code { font-family: Consolas, "Liberation Mono", Courier, monospace; background-color: transparent !important; }
+			pre.prettyprint { border: 0px !important; background-color: #fff; margin-bottom: -0.5em; }
+			.panel-heading h2 { margin-top: 0.5em; }
+			.bg-default { background-color: #F8F8F8; }
+			.snippet { background: #F8F8; list-style: none; display: none; }
+			.snippet-toggle { margin-top: -0.3em; }
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<div class="page-header">
+						<h1>Hello API</h1>
+						<h2><small><p>A simple API demo</p>
+</small></h2>
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-bottom: 2em;">
+				<div class="col-md-12">
+<ul class="nav nav-pills" id="group-tab">
+	
+		<li><a href="#people" data-toggle="tab"><strong>People</strong></a></li>
+	
+</ul>
+</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12 col-sm-12 col-md-12">
+					<div class="tab-content">
+
+	<div class="tab-pane" id="people">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h2 id="people">People</h2>
+			</div>
+			<div class="panel-body">
+				<p class="lead"><small>This section describes about the People
+
+</small></p>
+				
+
+	
+	
+	
+	<div class="panel panel-info">
+		<div class="panel-heading">
+			<span class="btn btn-primary">GET</span>
+			<code>/people/{id}</code>
+		</div>
+		<div class="panel-body">
+			<p>Return the information for the Person</p>
+
+		</div>
+		<ul class="list-group">
+			
+				<li class="list-group-item bg-default"><strong>Parameters</strong></li>
+				<li class="list-group-item">
+<dl class="dl-horizontal">
+	
+		<dt>id</dt>
+		<dd>
+		
+			<strong>(required)</strong>
+		
+		<code>string</code> The id of the Person.
+		</dd>
+	
+</dl>
+</li>
+			
+			
+	
+		
+	
+		<li class="list-group-item bg-default response">
+			<strong>Requests</strong>
+			<a href="javascript:;" class="pull-right btn btn-link btn-sm snippet-toggle">SHOW</a>
+		</li>
+		<li class="list-group-item snippet">
+			
+				<code>&gt; Content-Type: application/json</code><br><code>&gt; Authorization: Basic AbcdeFg=</code><br>
+			
+			
+		</li>
+	
+
+		
+	
+		<li class="list-group-item bg-default response">
+			<strong>Response <code>200</code></strong>
+			<a href="javascript:;" class="pull-right btn btn-link btn-sm snippet-toggle">SHOW</a>
+		</li>
+		<li class="list-group-item snippet">
+			
+				<code>&lt; Content-Type: application/json</code><br>
+			
+			
+				<pre class="prettyprint">{&#34;name&#34;:&#34;Gesang&#34;,&#34;birthdate&#34;:&#34;01-09-1917&#34;}
+</pre>
+			
+		</li>
+	
+
+	
+
+		</ul>
+	</div>
+	
+
+
+			</div>
+		</div>
+	</div>
+
+</div>
+				</div>
+			</div>
+		</div>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+		<script src="//google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+		<script>
+			jQuery(function($) {
+ 				$('#group-tab a[data-toggle="tab"]').on("click", function(e) {
+ 					window.location.hash = $(this).attr("href");
+ 				});
+
+ 				if(window.location.hash){
+ 					$('#group-tab a:first').tab('show');
+ 					$('#group-tab a[href$="'+ window.location.hash +'"]').tab("show");
+ 				} else {
+ 					$('#group-tab a:first').tab('show');
+ 				}
+
+				$('.snippet-toggle').on("click", function(e) {
+					e.preventDefault();
+					var target = $(this).data('target');
+					$(this).parent().next().toggle();
+					if ($(this).text() == "SHOW") {
+						$(this).text("HIDE");
+					} else {
+						$(this).text("SHOW");
+					}
+				});
+			});
+		</script>
+	</body>
+</html>
+
+
+
+
+
+

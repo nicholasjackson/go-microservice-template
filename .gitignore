@@ -7,6 +7,12 @@ go/src/github.com/rogpeppe
 go/src/github.com/gorilla
 go/src/github.com/pmylund
 go/src/github.com/stretchr
+go/src/bitbucket.org
+go/src/github.com/hashicorp
+go/src/github.com/peterhellberg
+go/src/github.com/russross
+go/src/github.com/shurcooL
+go/src/github.com/subosito
 
 # binaries
 server
