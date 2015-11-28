@@ -7,6 +7,6 @@ import (
 func GetRouter() *pat.Router {
 	r := pat.New()
 
-	r.Get("/helloworld", HelloWorldHandler)
+	r.Get("/health", HealthHandler)
 	return r
 }

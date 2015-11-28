@@ -1,16 +1,19 @@
 require 'docker'
 require_relative 'rake-modules/docker'
 
-GOPATH = Dir.pwd + "/go"
-GOCMD = "/usr/local/go/bin/go"
-CONFIG = Dir.pwd + "/config.json"
-ROOTFOLDER = Dir.pwd
-
+REGISTRY_URL = ENV['DOCKER_REGISTRY_URL']
 REGISTRY_USER = ENV['DOCKER_REGISTRY_USER']
 REGISTRY_PASS = ENV['DOCKER_REGISTRY_PASS']
 REGISTRY_EMAIL = ENV['DOCKER_REGISTRY_EMAIL']
 
+DOCKER_NAMESPACE = ENV['DOCKER_NAMESPACE']
 DOCKER_IMAGE_NAME = 'microservice-template'
+
+GOCMD = "/usr/local/go/bin/go"
+CONFIG = Dir.pwd + "/config.json"
+ROOTFOLDER = Dir.pwd
+
+#golang:latest
 
 task :test  do
 	p "Test Application"
@@ -120,10 +123,8 @@ task :push do
 	p "Push image to registry"
 
 	image =  find_image "#{DOCKER_IMAGE_NAME}:latest"
-	image.tag('repo' => "tutum.co/nicholasjackson/#{DOCKER_IMAGE_NAME}", 'force' => true) unless image.info["RepoTags"].include? "tutum.co/nicholasjackson/#{DOCKER_IMAGE_NAME}:latest"
+	image.tag('repo' => "#{DOCKER_NAMESPACE}#{DOCKER_IMAGE_NAME}", 'force' => true) unless image.info["RepoTags"].include? "#{DOCKER_NAMESPACE}#{DOCKER_IMAGE_NAME}:latest"
 
-	#p Docker.authenticate!('serveraddress' => 'https://tutum.co', 'username' => "#{REGISTRY_USER}", 'password' => "#{REGISTRY_PASS}", 'email' => "#{REGISTRY_EMAIL}")
-	sh "docker login -u #{REGISTRY_USER} -p #{REGISTRY_PASS} -e #{REGISTRY_EMAIL} https://tutum.co"
-	sh "docker push tutum.co/nicholasjackson/#{DOCKER_IMAGE_NAME}:latest"
-	#image.push() { |stream, chunk| puts "#{stream}: #{chunk}" }
+	sh "docker login -u #{REGISTRY_USER} -p #{REGISTRY_PASS} -e #{REGISTRY_EMAIL} #{REGISTRY_URL}"
+	sh "docker push #{DOCKER_NAMESPACE}#{DOCKER_IMAGE_NAME}:latest"
 end
