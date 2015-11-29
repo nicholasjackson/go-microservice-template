@@ -7,4 +7,4 @@ Feature: Health check
 Scenario: Health check returns ok
 	Given I send a GET request to "/health"
 	Then the response status should be "200"
-	And the JSON response should have "$..StatusMessage" with the text "OK"
+	And the JSON response should have "$..status_message" with the text "OK"

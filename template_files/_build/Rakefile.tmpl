@@ -4,6 +4,7 @@ require 'consul/client'
 
 require_relative 'rake-modules/docker'
 require_relative 'rake-modules/consul'
+require_relative 'rake-modules/helpers'
 
 REGISTRY_URL = ENV['DOCKER_REGISTRY_URL']
 REGISTRY_USER = ENV['DOCKER_REGISTRY_USER']
@@ -107,7 +108,7 @@ task :e2e do
 
 	puts "Running Tests for #{host}"
 
-	ENV['WEB_SERVER_URI'] = "http://#{host}:3123"
+	ENV['WEB_SERVER_URI'] = "http://#{host}:8001"
 	ENV['MONGO_URI'] = "#{host}:27017"
 	ENV['EMAIL_SERVER_URI'] = "http://#{host}:1080"
 
