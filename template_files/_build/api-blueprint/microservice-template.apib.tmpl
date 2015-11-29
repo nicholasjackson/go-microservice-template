@@ -1,0 +1,30 @@
+FORMAT: 1A
+HOST: https://api.example.com/v1
+
+# {{.ServiceName}} API
+
+API documentation for {{.ServiceName}}
+
+# Group Health Check
+
+This section describes api endpoints related to the health check
+
+## Health [/health]
+
+Returns the current health of the microservice
+
++ Model (application/json)
+
+    ```
+    {"status_message":"OK"}
+    ```
+
+### Check health of the service [GET]
+
+Return the current health for the service
+
++ Request (application/json)
+
++ Response 200 (application/json)
+
+    [Health]

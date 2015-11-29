@@ -1,5 +1,9 @@
+require 'pathname'
 require 'docker'
+require 'consul/client'
+
 require_relative 'rake-modules/docker'
+require_relative 'rake-modules/consul'
 
 REGISTRY_URL = ENV['DOCKER_REGISTRY_URL']
 REGISTRY_USER = ENV['DOCKER_REGISTRY_USER']
@@ -7,13 +11,13 @@ REGISTRY_PASS = ENV['DOCKER_REGISTRY_PASS']
 REGISTRY_EMAIL = ENV['DOCKER_REGISTRY_EMAIL']
 
 DOCKER_NAMESPACE = ENV['DOCKER_NAMESPACE']
-DOCKER_IMAGE_NAME = 'microservice-template'
+DOCKER_IMAGE_NAME = '{{.ServiceName}}'
 
+GOPATH = ENV["GOPATH"]
 GOCMD = "/usr/local/go/bin/go"
-CONFIG = Dir.pwd + "/config.json"
-ROOTFOLDER = Dir.pwd
+GONAMESPACE = '{{.Namespace}}'
 
-#golang:latest
+ROOTFOLDER = Pathname.new(Dir.pwd).parent
 
 task :test  do
 	p "Test Application"
@@ -38,7 +42,7 @@ task :build => [:test] do
 
 	begin
 		# Build go server
-		ret = container.exec(['go','build','-o','server']) { |stream, chunk| puts "#{stream}: #{chunk}" }
+		ret = container.exec(['go','build','-a','-installsuffix','cgo','-ldflags','\'-s\'','-o','server']) { |stream, chunk| puts "#{stream}: #{chunk}" }
 		raise Exception, 'Error running command' unless ret[2] == 0
 	ensure
 		container.delete(:force => true)
@@ -48,15 +52,19 @@ end
 task :build_server => [:build] do
 	p "Building Docker Image:- #{DOCKER_IMAGE_NAME}"
 
-	FileUtils.cp "./go/src/github.com/nicholasjackson/#{DOCKER_IMAGE_NAME}/server", "./dockerfile/#{DOCKER_IMAGE_NAME}/server"
+	FileUtils.cp "#{GOPATH}/src/#{GONAMESPACE}/#{DOCKER_IMAGE_NAME}/server", "./dockerfile/#{DOCKER_IMAGE_NAME}/server"
 
 	Docker.options = {:read_timeout => 6200}
 	image = Docker::Image.build_from_dir "./dockerfile/#{DOCKER_IMAGE_NAME}", {:t => DOCKER_IMAGE_NAME}
 end
 
-task :run => [:build_server] do
+task :run do
 	begin
-		sh "docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml up"
+    puts `docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml up -d`
+    sleep 2
+		setConsulVariables get_docker_ip_address, 9500
+		#self.wait_until_server_running ENV['WEB_SERVER_URI']
+    sh "docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml logs"
 	rescue SystemExit, Interrupt
 		sh "docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml stop"
 		# remove stopped containers
@@ -99,23 +107,25 @@ task :e2e do
 
 	puts "Running Tests for #{host}"
 
-	ENV['WEB_SERVER_URI'] = "http://#{host}:8001"
-	#ENV['MONGO_URI'] = "#{host}:27017"
-	#ENV['EMAIL_SERVER_URI'] = "http://#{host}:1080"
+	ENV['WEB_SERVER_URI'] = "http://#{host}:3123"
+	ENV['MONGO_URI'] = "#{host}:27017"
+	ENV['EMAIL_SERVER_URI'] = "http://#{host}:1080"
 
+  puts "Running Tests"
 	begin
-		pid = Process.fork do
-	    exec "docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml up > serverlog.txt"
-		end
+	  puts `docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml up -d`
+    sleep 2
+		setConsulVariables host, 9500
+		self.wait_until_server_running ENV['WEB_SERVER_URI']
 
-		sleep 5
-
-		sh "cucumber #{feature}"
+		p 'Running Tests'
+		puts `cucumber --color #{feature}`
 	ensure
+    p 'Stopping Application'
 		# remove stop running application
-		sh "docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml stop"
+		puts `docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml stop`
 		# remove stopped containers
-		sh "echo y | docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml rm"
+		puts `echo y | docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml rm`
 	end
 end
 

@@ -1,0 +1,16 @@
+{{.ServiceName}}_test:
+  image: {{.ServiceName}}
+  ports:
+    - "8001:8001"
+  environment:
+    - "CONSUL=consul:8500"
+  links:
+    - consul:consul
+consul:
+  image: progrium/consul
+  ports:
+    - "9400:8400"
+    - "9500:8500"
+    - "9600:53/udp"
+  hostname: node1
+  command: "-server -bootstrap -ui-dir /ui"

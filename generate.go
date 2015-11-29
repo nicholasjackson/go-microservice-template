@@ -4,13 +4,23 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"text/template"
 )
 
+var templateRegex = regexp.MustCompile("^.*\\.tmpl")
+var gitRegex = regexp.MustCompile("^.git.*")
+
 var scanner = bufio.NewScanner(os.Stdin)
+
+type templateData struct {
+	ServiceName string
+	Namespace   string
+}
 
 func requestName(scanner *bufio.Scanner) string {
 	fmt.Println("What is the name of this microservice?")
@@ -45,26 +55,28 @@ func main() {
 }
 
 func printHeader() {
-	fmt.Println("___  ____                                    _          ")
-	fmt.Println("|  \\/  (_)                                  (_)         ")
-	fmt.Println("| .  . |_  ___ _ __ ___  ___  ___ _ ____   ___  ___ ___ ")
-	fmt.Println("| |\\/| | |/ __| '__/ _ \\/ __|/ _ \\ '__\\ \\ / / |/ __/ _ \\")
-	fmt.Println("| |  | | | (__| | | (_) \\__ \\  __/ |   \\ V /| | (_|  __/")
-	fmt.Println("\\_|  |_/_|\\___|_|  \\___/|___/\\___|_|    \\_/ |_|\\___\\___|")
-	fmt.Println(" _____                    _       _                     ")
-	fmt.Println("|_   _|                  | |     | |                    ")
-	fmt.Println("  | | ___ _ __ ___  _ __ | | __ _| |_ ___               ")
-	fmt.Println("  | |/ _ \\ '_ ` _ \\| '_ \\| |/ _` | __/ _ \\              ")
-	fmt.Println("  | |  __/ | | | | | |_) | | (_| | ||  __/              ")
-	fmt.Println("  \\_/\\___|_| |_| |_| .__/|_|\\__,_|\\__\\___|              ")
-	fmt.Println("                   | |                                  ")
-	fmt.Println("                   |_|                                  ")
-	fmt.Println("")
+	header := `
+	___  ____                                    _
+	|  \/  (_)                                  (_)
+	| .  . |_  ___ _ __ ___  ___  ___ _ ____   ___  ___ ___
+	| |\/| | |/ __| '__/ _ \/ __|/ _ \ '__\ \ / / |/ __/ _ \
+	| |  | | | (__| | | (_) \__ \  __/ |   \ V /| | (_|  __/
+	\_|  |_/_|\___|_|  \___/|___/\___|_|    \_/ |_|\___\___|
+	 _____                    _       _
+	|_   _|                  | |     | |
+	  | | ___ _ __ ___  _ __ | | __ _| |_ ___
+	  | |/ _ \ '_ ' _ \| '_ \| |/ _' | __/ _ \
+	  | |  __/ | | | | | |_) | | (_| | ||  __/
+	  \_/\___|_| |_| |_| .__/|_|\__,_|\__\___|
+	                   | |
+	                   |_|
+	`
+	fmt.Println(header)
 	fmt.Println("")
 }
 
 func confirm(serviceName, nameSpace string, scanner *bufio.Scanner) bool {
-	fmt.Printf("Generating Microservice template: %s/%s in GOPATH\n", serviceName, nameSpace)
+	fmt.Printf("Generating Microservice template: %s/%s in GOPATH\n", nameSpace, serviceName)
 	fmt.Printf("Is this correct? (y|n)\n")
 	scanner.Scan()
 	line := scanner.Text()
@@ -77,13 +89,13 @@ func generateTemplate(serviceName string, nameSpace string) {
 	destination := destinationFolder(serviceName, nameSpace)
 	os.MkdirAll(destination, os.ModePerm)
 
-	copyNonGitFiles(destination, serviceName)
+	copyNonGitFiles(destination, serviceName, nameSpace)
 	//renameInFiles(serviceName, nameSpace)
 }
 
-func copyNonGitFiles(destination string, serviceName string) {
+func copyNonGitFiles(destination string, serviceName string, nameSpace string) {
 	err := filepath.Walk("./template_files", func(path string, f os.FileInfo, err error) error {
-		_ = copyNonGitFile(path, destination, serviceName)
+		_ = processNonGitFile(path, destination, serviceName, nameSpace)
 		return nil
 	})
 	if err != nil {
@@ -91,17 +103,44 @@ func copyNonGitFiles(destination string, serviceName string) {
 	}
 }
 
-func copyNonGitFile(path string, destination string, serviceName string) error {
-	gitRegex := regexp.MustCompile("^.git.*")
-	if gitRegex.MatchString(path) {
-		fmt.Println("Skipping git path: ", path)
-	} else {
-		newFile := replaceDefaultNameInPath(path, serviceName)
-		destinationFile := destination + "/" + newFile
+func processNonGitFile(path string, destination string, serviceName string, nameSpace string) error {
+	newFile := replaceDefaultNameInPath(path, serviceName)
+	newFile = replaceTemplateExtInPath(newFile)
+	destinationFile := destination + "/" + newFile
 
+	switch {
+	case gitRegex.MatchString(path):
+		fmt.Println("Skipping git path: ", path)
+	case templateRegex.MatchString(path):
+		err := saveAndProcessTemplate(path, destinationFile, templateData{serviceName, nameSpace})
+		if err != nil {
+			fmt.Println("Unable to process template:", err)
+			return err
+		}
+	default:
 		copyFile(path, destinationFile)
 	}
+
 	return nil
+}
+
+func saveAndProcessTemplate(src string, dst string, data templateData) error {
+	fmt.Println("Process template: ", src)
+
+	f, err := ioutil.ReadFile(src)
+	templateString := string(f[:])
+
+	tmpl, err := template.New("Template").Parse(templateString)
+	if err != nil {
+		return err
+	}
+
+	createFolder(dst)
+
+	output, err := os.Create(dst)
+	defer output.Close()
+
+	return tmpl.Execute(output, data)
 }
 
 func copyFile(src, dst string) error {
@@ -112,11 +151,12 @@ func copyFile(src, dst string) error {
 	// no need to check errors on read only file, we already got everything
 	// we need from the filesystem, so nothing can go wrong now.
 	defer source.Close()
-	dstDir := filepath.Dir(dst)
+
 	sourceInfo, err := source.Stat()
 	if sourceInfo.Mode().IsRegular() {
-		fmt.Println("Copying path: ", src, " to: ", dst)
-		os.MkdirAll(dstDir, os.ModePerm)
+		fmt.Println("Copying path: ", src)
+		createFolder(dst)
+
 		destination, err := os.Create(dst)
 		if err != nil {
 			return err
@@ -130,31 +170,20 @@ func copyFile(src, dst string) error {
 	return nil
 }
 
-/*
-func renameInFiles(serviceName, destination string) {
-	filesToEdit := [6]string{"go/src/github.com/nicholasjackson/microservice-template/server.go", "dockercompose/microservice-template/docker-compose.yml", "dockerfile/microservice-template/Dockerfile", "dockerfile/microservice-template/supervisord.conf", ".ruby-gemset", "Rakefile"}
-	os.Chdir(destination)
-	for _, path := range filesToEdit {
-		filename := replaceMicroserviceTemplate(path)
-		body, err := ioutil.ReadFile(filename)
-		bodyString := string(body[:])
-		if err != nil {
-			panic(err)
-		}
-		newBodyString := replaceMicroserviceTemplate(bodyString)
-		newBody := []byte(newBodyString)
-		err = ioutil.WriteFile(filename, newBody, 0644)
-		if err != nil {
-			panic(err)
-		}
-	}
+func createFolder(dst string) {
+	dstDir := filepath.Dir(dst)
+	os.MkdirAll(dstDir, os.ModePerm)
 }
 
-
-*/
-
 func replaceDefaultNameInPath(path string, serviceName string) string {
-	return strings.Replace(path, "microservice-template", serviceName, -1)
+	newpath := strings.Replace(path, "microservice-template", serviceName, -1)
+	newpath = strings.Replace(newpath, "template_files/", "", -1)
+
+	return newpath
+}
+
+func replaceTemplateExtInPath(path string) string {
+	return strings.Replace(path, ".tmpl", "", -1)
 }
 
 func destinationFolder(serviceName string, nameSpace string) string {

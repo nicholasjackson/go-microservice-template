@@ -36,12 +36,12 @@ def find_running_container
 	found = nil
 
 	containers.each do | container |
-		if container.info["Image"] == "gobuildserver"
-			found = container
+		if container.info["Image"] == "golang" && container.info["Status"].start_with?("Up")
+			return container
 		end
 	end
 
-	return found
+	return nil
 end
 
 def create_and_start_container
@@ -49,23 +49,16 @@ def create_and_start_container
 	# set the chunk size to enable streaming of log files
 	Docker.options = {:chunk_size => 1, :read_timeout => 3600}
 
-  p "Root: #{ROOTFOLDER}"
-
 	command = ['/bin/bash']
 	container = Docker::Container.create(
-		'Image' => 'gobuildserver',
+		'Image' => 'golang',
 		'Cmd' => command,
 		'Tty' => true,
 		"Binds" => [
-			"#{ROOTFOLDER}:/src",
-			"#{ROOTFOLDER}/go/src:/go/src",
-			"#{ROOTFOLDER}/api-blueprint:/api-blueprint"
+			"#{GOPATH}/src:/go/src",
+			"#{ROOTFOLDER}/_build/api-blueprint:/api-blueprint"
 		],
-		"Env" => [
-			"API_CONFIG=/src/devconfig.json",
-			"API_ROOT=/src"
-		],
-		'WorkingDir' => "/go/src/github.com/nicholasjackson/#{DOCKER_IMAGE_NAME}")
+		'WorkingDir' => "/go/src/#{GONAMESPACE}/#{DOCKER_IMAGE_NAME}")
 
 	container.start
 

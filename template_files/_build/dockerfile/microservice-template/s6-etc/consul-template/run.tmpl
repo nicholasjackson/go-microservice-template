@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec /usr/bin/consul-template -consul=$CONSUL -template "/{{.ServiceName}}/config.ctmpl:/{{.ServiceName}}/config.json:killall server"

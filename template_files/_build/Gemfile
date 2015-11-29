@@ -5,3 +5,4 @@ gem "cucumber-rest-api"
 gem 'cucumber-mailcatcher', '~> 0.12'
 gem 'pickle-mongodb', '~> 0.1'
 gem 'docker-api', :require => 'docker'
+gem 'consul-ruby-client', '~> 0.0.12'

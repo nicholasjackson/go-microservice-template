@@ -1,6 +1,0 @@
-microservice-template:
-  image: microservice-template
-  ports:
-    - "8001:8001"
-  environment:
-    CONSUL_SERVER: localhost
