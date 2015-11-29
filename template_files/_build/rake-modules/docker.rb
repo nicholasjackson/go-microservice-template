@@ -58,6 +58,9 @@ def create_and_start_container
 			"#{GOPATH}/src:/go/src",
 			"#{ROOTFOLDER}/_build/api-blueprint:/api-blueprint"
 		],
+		"Env" => [
+      "CGO_ENABLED=0" # needed to build alpine compatible go binaries
+		],
 		'WorkingDir' => "/go/src/#{GONAMESPACE}/#{DOCKER_IMAGE_NAME}")
 
 	container.start

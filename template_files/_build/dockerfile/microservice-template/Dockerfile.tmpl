@@ -14,7 +14,7 @@ chmod -R 755 /etc/s6
 ADD config.ctmpl /{{.ServiceName}}/config.ctmpl
 
 # Add server files
-ADD ./server /{{.ServiceName}}/server
+ADD server /{{.ServiceName}}/server
 RUN chmod 755 /{{.ServiceName}}/server
 
 ENTRYPOINT ["/usr/bin/s6-svscan","/etc/s6"]
