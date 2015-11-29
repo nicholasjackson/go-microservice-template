@@ -89,13 +89,6 @@ task :docs do
 	end
 end
 
-task :build_go_build_server do
-	p "Building Docker Image:- Dev Server"
-
-	Docker.options = {:read_timeout => 6200}
-	image = Docker::Image.build_from_dir './dockerfile/gobuildserver', {:t => 'gobuildserver'}
-end
-
 task :e2e do
 	feature = ARGV.last
 	if feature != "e2e"

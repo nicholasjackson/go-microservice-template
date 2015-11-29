@@ -1,28 +1,33 @@
 # microservice-template
-This repository allows you to create a scaffold microservice written in Go with full unit and cucumber functional tests.  All code is built and run inside of a docker container to allow predicable builds across multiple environments.  There is also a scaffold prodcution image dockerfile which contains the basic setup for supervisord, consul-template and your application.  Thanks to [Alex Sunderland](https://github.com/AgentAntelope) for rewriting the clone script in a more appropriate Go from the original Ruby.
+This repository allows you to create a scaffold microservice written in Go with full unit and cucumber functional tests.  All code is built and run inside of a docker container to allow predicable builds across multiple environments.  There is also a scaffold production image Dockerfile which contains the basic setup for scaware s6, consul-template and your application.  Thanks to [Alex Sunderland](https://github.com/AgentAntelope) for rewriting the clone script in a more appropriate Go from the original Ruby.
 
 # How to use
 1. run `go run generate.go`
-2. Enter the name for your new microservice
-3. Enter the location to create the service
+2. Enter the namespace for the service this is generally the same as your github path i.e github.com/nicholasjackson
+3. Enter the name for your new microservice
 
-The service will then be created in the destination folder, the Rakefile in the destination contains the details for default build settings.
+The service will then be created in your GOPATH, the Rakefile in the destination contains the details for default build settings and running cucumber.
 
 # Setup
-For repetability of your build across multiple environments I build and test my service in a Docker container, for simpliciy I am assuming you are using Kitematic on a mac however these instructions will work on any machine with Docker installed.
+For repeatability of your build across multiple environments I build and test my service in a Docker container, for simplicity I am assuming you are using Docker toolbox on a mac however these instructions will work on any machine with Docker installed.
 
-## Install kitematic
-[https://kitematic.com/](https://kitematic.com/)
+## Install Docker Toolbox
+[https://www.docker.com/docker-toolbox](https://www.docker.com/docker-toolbox)
 
-## Setup docker envrionment variables in your terminal, this allows the docker command to work with kitematic.
+## Start docker
+```
+docker-machine start default
+```
+
+## Setup docker environment variables in your terminal, this allows the docker command to work with kitematic.
 ```
 eval "$(docker-machine env default)"
 ```
 
-# Build go build container
-In order to build the application, I use a Docker container, this allows me to execute the same build commands on my local machine that will run on a CI server for predictability.  The repository contains a dockerfile for building go applications which is based on the official Google Go container.  This command generally only needs to be done once to cache an image on your local machine.
+# Get latest go docker image
+In order to build the application, I use a Docker container, this allows me to execute the same build commands on my local machine that will run on a CI server for predictability. Make sure you have the latest golang image.
 ```
-rake build_go_build_server
+docker pull golang:latest
 ```
 
 # Building and testing your code
@@ -33,23 +38,22 @@ rake test
 ```
 
 ## Build application
-Buinding the application is as simple as running ...
+Building the application is as simple as running ...
 ```
 rake build
 ```
-This will also run the unit tests and fetch dependencies first.  The output application (unix binary, we are building in a container) can be found at go/src/github.com/nicholasjackson/microservice-name/server
+This will also run the unit tests and fetch dependencies first.  The output application (unix binary, we are building in a container) can be found at `$GOPATH/github.com/nicholasjackson/microservice-name/server`
 
-## Running cucumber e2e tests
-The e2e tests use docker-compose to spin up a copy of your service in a container and then use cucumber to execute some functional tests.  I use compose as it allows you to connect any additional containers such as a database to the startup.  The basic example only has 1 container which is the main service however you can configure this in the docker-compose.yml
-```
-rake e2e
-```
-Before running the functional tests the application is built and the unit tests are executed, the output is then packaged into a production ready docker image complete with consul template.
-
-## Building a production ready image
-There is a template docker file which allows you to package the output of your service along with consul template in dockerfile/microservice-name in this folder you will also find an example config file which is loaded at startup and the consul-template file.  Supervisord is used to start both the application and consul template when running in production set the environment variable CONSUL_SERVER=http://your.consul.server:port if you are testing locally ommit this variable to use the default config.json
+## Build a production container
+The container build is based on alpine linux and therefore will create a really small image < 35MB, to builds the image so that it can be pushed to a registry or so you can run the functional tests run...
 ```
 rake build_server
+```
+
+## Running cucumber e2e tests
+The e2e tests use docker-compose to spin up a copy of your service in a container and then use cucumber to execute some functional tests.  I use compose as it allows you to connect any additional containers such as a database to the startup.  The basic example only has 1 container which is the main service however you can configure this in the docker-compose.yml.  Before running functional tests make sure you have built a production container using the above step.
+```
+rake e2e
 ```
 
 ## Runing your service
