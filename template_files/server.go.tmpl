@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"github.com/facebookgo/inject"
-	{{if .StatsD}} "github.com/alexcesaro/statsd"{{end}}
 	"{{.Namespace}}/{{.ServiceName}}/global"
 	"{{.Namespace}}/{{.ServiceName}}/handlers"
+
+	"github.com/facebookgo/inject"
+	{{if .StatsD}} "github.com/alexcesaro/statsd"{{end}}
 )
 
 func main() {
@@ -16,8 +17,8 @@ func main() {
 
 	global.LoadConfig(config, rootfolder)
 
-	setupHandlers()
 	setupInjection()
+	setupHandlers()
 }
 
 func setupHandlers() {

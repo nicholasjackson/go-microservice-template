@@ -69,5 +69,8 @@ rake docs
 ```
 [http://htmlpreview.github.io/?https://github.com/nicholasjackson/go-microservice-template/blob/master/api-blueprint/microservice-template.html](http://htmlpreview.github.io/?https://github.com/nicholasjackson/go-microservice-template/blob/master/api-blueprint/microservice-template.html)
 
+# Consul
+When you run the template a local Consul server is started to provide KeyValues to Consul Template, when you are developing or testing your code you can set the values to be injected into consul by changing _build/rake-modules/consul.rb
+
 # StatsD
-If you have chosen to include the StatsD client and if you are building microservices then metrics exposed from your service will possibly save your ass one day so you really should.  For testing purposes compose will include a standard Graphite / Carbon stack, you can access Graphite from http://[DOCKER_IP]:8080
+If you have chosen to include the StatsD client for testing purposes compose will start a standard Graphite / Carbon stack, you can access Graphite from http://[DOCKER_IP]:8080
