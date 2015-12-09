@@ -64,7 +64,7 @@ task :run do
     puts `docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml up -d`
     sleep 2
 		setConsulVariables get_docker_ip_address, 9500
-		#self.wait_until_server_running ENV['WEB_SERVER_URI']
+		
     sh "docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml logs"
 	rescue SystemExit, Interrupt
 		sh "docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml stop"
@@ -72,6 +72,8 @@ task :run do
 		sh "echo y | docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml rm"
 	end
 end
+
+task :build_and_run => [:build_server, :run]
 
 task :docs do
 	container = get_container

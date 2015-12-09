@@ -68,3 +68,6 @@ To generate HTML documentation from the api-blueprint run:
 rake docs
 ```
 [http://htmlpreview.github.io/?https://github.com/nicholasjackson/go-microservice-template/blob/master/api-blueprint/microservice-template.html](http://htmlpreview.github.io/?https://github.com/nicholasjackson/go-microservice-template/blob/master/api-blueprint/microservice-template.html)
+
+# StatsD
+If you have chosen to include the StatsD client and if you are building microservices then metrics exposed from your service will possibly save your ass one day so you really should.  For testing purposes compose will include a standard Graphite / Carbon stack, you can access Graphite from http://[DOCKER_IP]:8080

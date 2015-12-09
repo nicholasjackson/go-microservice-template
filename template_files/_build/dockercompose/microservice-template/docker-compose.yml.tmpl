@@ -5,7 +5,8 @@
   environment:
     - "CONSUL=consul:8500"
   links:
-    - consul:consul
+    - consul:consul{{if .StatsD}}
+    - statsd:statsd{{end}}
 consul:
   image: progrium/consul
   ports:
@@ -14,3 +15,11 @@ consul:
     - "9600:53/udp"
   hostname: node1
   command: "-server -bootstrap -ui-dir /ui"
+{{if .StatsD}}statsd:
+  image: hopsoft/graphite-statsd
+  ports:
+    - "8080:80"
+    - "2003:2003"
+    - "8125:8125/udp"
+    - "8126:8126"
+{{end}}

@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-
+	"github.com/facebookgo/inject"
+	{{if .StatsD}} "github.com/alexcesaro/statsd"{{end}}
 	"{{.Namespace}}/{{.ServiceName}}/global"
 	"{{.Namespace}}/{{.ServiceName}}/handlers"
 )
@@ -13,10 +14,10 @@ func main() {
 	config := os.Args[1]
 	rootfolder := os.Args[2]
 
-	fmt.Println("Loading Config:" + config)
 	global.LoadConfig(config, rootfolder)
 
 	setupHandlers()
+	setupInjection()
 }
 
 func setupHandlers() {
@@ -24,4 +25,31 @@ func setupHandlers() {
 
 	fmt.Println("Listening for connections on port", 8001)
 	http.ListenAndServe(fmt.Sprintf(":%v", 8001), nil)
+}
+
+func setupInjection() {
+	var g inject.Graph
+
+	{{if .StatsD}}
+	statsdClient, err := statsd.New(global.Config.StatsDServerIP) // reference to a statsd client
+	if err != nil {
+		panic(fmt.Sprintln("Unable to create StatsD Client: ", err))
+	}
+	{{end}}
+
+	err = g.Provide(
+		&inject.Object{Value: handlers.HealthHandlerDependencies},
+		{{if .StatsD}}&inject.Object{Value: statsdClient, Name: "statsd"},{{end}}
+	)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Here the Populate call is creating instances of NameAPI &
+	// PlanetAPI, and setting the HTTPTransport on both to the
+	// http.DefaultTransport provided above:
+	if err := g.Populate(); err != nil {
+		fmt.Println(err)
+	}
 }

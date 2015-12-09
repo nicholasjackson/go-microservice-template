@@ -20,6 +20,7 @@ var scanner = bufio.NewScanner(os.Stdin)
 type templateData struct {
 	ServiceName string
 	Namespace   string
+	StatsD      bool
 }
 
 func requestName(scanner *bufio.Scanner) string {
@@ -40,14 +41,25 @@ func requestNamespace(scanner *bufio.Scanner) string {
 	return line
 }
 
+func includeStatsD(scanner *bufio.Scanner) bool {
+	fmt.Printf("Include StatsD? (y|n)\n")
+	scanner.Scan()
+	line := scanner.Text()
+	fmt.Println("")
+
+	return line == "y"
+}
+
 func main() {
 	printHeader()
 
 	nameSpace := requestNamespace(scanner)
 	serviceName := requestName(scanner)
+	statsD := includeStatsD(scanner)
 
 	if confirm(serviceName, nameSpace, scanner) {
-		generateTemplate(serviceName, nameSpace)
+		data := templateData{ServiceName: serviceName, Namespace: nameSpace, StatsD: statsD}
+		generateTemplate(data)
 	} else {
 		fmt.Println("")
 		fmt.Println("Fine I won't")
@@ -84,18 +96,18 @@ func confirm(serviceName, nameSpace string, scanner *bufio.Scanner) bool {
 	return line == "y"
 }
 
-func generateTemplate(serviceName string, nameSpace string) {
+func generateTemplate(data templateData) {
 	fmt.Println("output path: ", os.Getenv("GOPATH"))
-	destination := destinationFolder(serviceName, nameSpace)
+	destination := destinationFolder(data.ServiceName, data.Namespace)
 	os.MkdirAll(destination, os.ModePerm)
 
-	copyNonGitFiles(destination, serviceName, nameSpace)
+	copyNonGitFiles(destination, data)
 	//renameInFiles(serviceName, nameSpace)
 }
 
-func copyNonGitFiles(destination string, serviceName string, nameSpace string) {
+func copyNonGitFiles(destination string, data templateData) {
 	err := filepath.Walk("./template_files", func(path string, f os.FileInfo, err error) error {
-		_ = processNonGitFile(path, destination, serviceName, nameSpace)
+		_ = processNonGitFile(path, destination, data)
 		return nil
 	})
 	if err != nil {
@@ -103,8 +115,8 @@ func copyNonGitFiles(destination string, serviceName string, nameSpace string) {
 	}
 }
 
-func processNonGitFile(path string, destination string, serviceName string, nameSpace string) error {
-	newFile := replaceDefaultNameInPath(path, serviceName)
+func processNonGitFile(path string, destination string, data templateData) error {
+	newFile := replaceDefaultNameInPath(path, data.ServiceName)
 	newFile = replaceTemplateExtInPath(newFile)
 	destinationFile := destination + "/" + newFile
 
@@ -112,7 +124,7 @@ func processNonGitFile(path string, destination string, serviceName string, name
 	case gitRegex.MatchString(path):
 		fmt.Println("Skipping git path: ", path)
 	case templateRegex.MatchString(path):
-		err := saveAndProcessTemplate(path, destinationFile, templateData{serviceName, nameSpace})
+		err := saveAndProcessTemplate(path, destinationFile, data)
 		if err != nil {
 			fmt.Println("Unable to process template:", err)
 			return err
