@@ -19,7 +19,7 @@ For repeatability of your build across multiple environments I build and test my
 docker-machine start default
 ```
 
-## Setup docker environment variables in your terminal, this allows the docker command to work with kitematic.
+## Setup docker environment variables in your terminal, this allows the docker command to work correctly.
 ```
 eval "$(docker-machine env default)"
 ```
@@ -42,7 +42,7 @@ Building the application is as simple as running ...
 ```
 rake build
 ```
-This will also run the unit tests and fetch dependencies first.  The output application (unix binary, we are building in a container) can be found at `$GOPATH/github.com/nicholasjackson/microservice-name/server`
+This will also run the unit tests and fetch dependencies first.  The output application (unix binary, we are building in a container) can be found at `$GOPATH/github.com/your-namespace/microservice-name/server`
 
 ## Build a production container
 The container build is based on alpine linux and therefore will create a really small image < 35MB, to builds the image so that it can be pushed to a registry or so you can run the functional tests run...
