@@ -31,6 +31,8 @@ func setupHandlers() {
 func setupInjection() {
 	var g inject.Graph
 
+	var err error
+
 	{{if .StatsD}}
 	statsdClient, err := statsd.New(global.Config.StatsDServerIP) // reference to a statsd client
 	if err != nil {
@@ -39,8 +41,8 @@ func setupInjection() {
 	{{end}}
 
 	err = g.Provide(
-		&inject.Object{Value: handlers.HealthHandlerDependencies},
-		{{if .StatsD}}&inject.Object{Value: statsdClient, Name: "statsd"},{{end}}
+		&inject.Object{Value: handlers.HealthHandlerDependencies},{{if .StatsD}}
+		&inject.Object{Value: statsdClient, Name: "statsd"},{{end}}
 	)
 
 	if err != nil {

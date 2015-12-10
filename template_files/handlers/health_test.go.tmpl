@@ -43,7 +43,7 @@ func TestSetup(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	statsDMock.Mock.On("Increment", mock.Anything).Return()
+	{{if .StatsD}}statsDMock.Mock.On("Increment", mock.Anything).Return(){{end}}
 }
 
 // Simple test to show how we can use the ResponseRecorder to test our HTTP handlers
