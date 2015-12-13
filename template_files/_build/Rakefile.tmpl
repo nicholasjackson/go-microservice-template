@@ -42,7 +42,7 @@ SWAGGER_CONTAINER_ARGS = {
 		'SWAGGER_FILE=swagger.yml',
 		'LANGUAGE=html'
 	],
-	:command => ['/src/run.sh']
+	:command => ['/bin/bash']
 }
 
 # updates build images for swagger and golang
@@ -76,6 +76,8 @@ end
 task :docs do
 	begin
 		container = get_container SWAGGER_CONTAINER_ARGS
+		ret = container.exec(['/src/run.sh']) { |stream, chunk| puts "#{stream}: #{chunk}" }
+		raise Exception, 'Error running command' unless ret[2] == 0
 	ensure
 		container.delete(:force => true)
 	end
