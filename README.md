@@ -24,10 +24,10 @@ docker-machine start default
 eval "$(docker-machine env default)"
 ```
 
-# Get latest go docker image
+# Get latest go docker image and swagger codegen
 In order to build the application, I use a Docker container, this allows me to execute the same build commands on my local machine that will run on a CI server for predictability. Make sure you have the latest golang image.
 ```
-docker pull golang:latest
+rake update_images
 ```
 
 # Building and testing your code
@@ -56,18 +56,20 @@ The e2e tests use docker-compose to spin up a copy of your service in a containe
 rake e2e
 ```
 
-## Runing your service
+## Running your service
 If you would like to start a copy of your service on your local machine run...
 ```
 rake run
 ```
 
-# Service docs
-To generate HTML documentation from the api-blueprint run:
+# Swagger
+To generate HTML documentation from the Swagger service definition run:
 ```
 rake docs
 ```
-[http://htmlpreview.github.io/?https://github.com/nicholasjackson/go-microservice-template/blob/master/api-blueprint/microservice-template.html](http://htmlpreview.github.io/?https://github.com/nicholasjackson/go-microservice-template/blob/master/api-blueprint/microservice-template.html)
+This generates static html documentation for the Swagger YAML file, the docs and the YAML are exposed by the service at..  
+http://[DOCKER_IP]:8001/swagger/  
+http://[DOCKER_IP]:8001/swagger/swagger.yml  
 
 # Consul
 When you run the template a local Consul server is started to provide KeyValues to Consul Template, when you are developing or testing your code you can set the values to be injected into consul by changing _build/rake-modules/consul.rb

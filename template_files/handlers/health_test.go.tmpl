@@ -8,7 +8,7 @@ import (
 
 	"github.com/facebookgo/inject"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	{{if .StatsD}}"github.com/stretchr/testify/mock"{{end}}
 )
 
 {{if .StatsD}}

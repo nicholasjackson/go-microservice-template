@@ -22,12 +22,17 @@ def find_image image_name
 	return found
 end
 
-def get_container
+def pull_image image_name
+	puts "Pulling Image: #{image_name}"
+	puts `docker pull #{image_name}`
+end
+
+def get_container args
 	container = find_running_container
 	if container != nil
 		return container
 	else
-		return create_and_start_container
+		return create_and_start_container(args)
 	end
 end
 
@@ -44,25 +49,18 @@ def find_running_container
 	return nil
 end
 
-def create_and_start_container
+def create_and_start_container args
 	# update the timeout for the Excon Http Client
 	# set the chunk size to enable streaming of log files
 	Docker.options = {:chunk_size => 1, :read_timeout => 3600}
 
-	command = ['/bin/bash']
 	container = Docker::Container.create(
-		'Image' => 'golang',
-		'Cmd' => command,
+		'Image' => args[:image],
+		'Cmd' => args[:command],
 		'Tty' => true,
-		"Binds" => [
-			"#{GOPATH}/src:/go/src",
-			"#{ROOTFOLDER}/_build/api-blueprint:/api-blueprint"
-		],
-		"Env" => [
-      "CGO_ENABLED=0" # needed to build alpine compatible go binaries
-		],
-		'WorkingDir' => "/go/src/#{GONAMESPACE}/#{DOCKER_IMAGE_NAME}")
-
+		"Binds" => args[:binds],
+		"Env" => args[:env],
+		'WorkingDir' => args[:working_directory])
 	container.start
 
 	return container

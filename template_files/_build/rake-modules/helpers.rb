@@ -1,6 +1,6 @@
 def self.wait_until_server_running server
   begin
-    response = RestClient.send("get", "#{server}/health")
+    response = RestClient.send("get", "#{server}/v1/health")
   rescue
 
   end

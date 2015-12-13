@@ -1,0 +1,34 @@
+swagger: '2.0'
+info:
+  title: {{.ServiceName}} API
+  description: {{.ServiceName}} API Description
+  version: 1.0.0
+host: api.test.com
+schemes:
+  - http
+basePath: /v1
+produces:
+  - application/json
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: |
+        The Health Check endpoint is used to determine the current status for the health of the api.
+        This endpoint will be used by other systems such as Consul and other service discovery systems.
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Status message from server describing current health
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/HealthResponse'
+definitions:
+  HealthResponse:
+    type: object
+    properties:
+      status_message:
+        type: string
+        description: 'Plain text readable response corresponding to current health status'

@@ -20,9 +20,45 @@ GONAMESPACE = '{{.Namespace}}'
 
 ROOTFOLDER = Pathname.new(Dir.pwd).parent
 
-task :test  do
+GO_CONTAINER_ARGS = {
+	:image => 'golang',
+	:binds => [
+		"#{GOPATH}/src:/go/src"
+	],
+	:env => [
+		'CGO_ENABLED=0' # needed to build alpine compatible go binaries
+	],
+	:working_directory => "/go/src/#{GONAMESPACE}/#{DOCKER_IMAGE_NAME}",
+	:command => ['/bin/bash']
+}
+
+SWAGGER_CONTAINER_ARGS = {
+	:image => 'sandcastle/swagger-codegen-docker',
+	:binds => [
+		"#{ROOTFOLDER}/_build/swagger_spec:/spec",
+		"#{ROOTFOLDER}/_build/swagger_spec:/gen",
+	],
+	:env => [
+		'SWAGGER_FILE=swagger.yml',
+		'LANGUAGE=html'
+	],
+	:command => ['/src/run.sh']
+}
+
+# updates build images for swagger and golang
+task :update_images do
+	pull_image 'golang:latest'
+	pull_image 'sandcastle/swagger-codegen-docker:latest'
+end
+
+task :fetch_images do
+	pull_image 'golang' unless find_image 'golang:latest'
+	pull_image 'sandcastle/swagger-codegen-docker' unless find_image 'sandcastle/swagger-codegen-docker:latest'
+end
+
+task :test => [:fetch_images] do
 	p "Test Application"
-	container = get_container
+	container = get_container GO_CONTAINER_ARGS
 
 	begin
 		# Get go packages
@@ -37,9 +73,17 @@ task :test  do
 	end
 end
 
-task :build => [:test] do
+task :docs do
+	begin
+		container = get_container SWAGGER_CONTAINER_ARGS
+	ensure
+		container.delete(:force => true)
+	end
+end
+
+task :build => [:fetch_images, :test] do
 	p "Build for Linux"
-	container = get_container
+	container = get_container GO_CONTAINER_ARGS
 
 	begin
 		# Build go server
@@ -50,10 +94,11 @@ task :build => [:test] do
 	end
 end
 
-task :build_server => [:build] do
+task :build_server => [:build, :docs] do
 	p "Building Docker Image:- #{DOCKER_IMAGE_NAME}"
 
 	FileUtils.cp "#{GOPATH}/src/#{GONAMESPACE}/#{DOCKER_IMAGE_NAME}/server", "./dockerfile/#{DOCKER_IMAGE_NAME}/server"
+	FileUtils.cp_r "./swagger_spec", "./dockerfile/#{DOCKER_IMAGE_NAME}"
 
 	Docker.options = {:read_timeout => 6200}
 	image = Docker::Image.build_from_dir "./dockerfile/#{DOCKER_IMAGE_NAME}", {:t => DOCKER_IMAGE_NAME}
@@ -64,7 +109,7 @@ task :run do
     puts `docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml up -d`
     sleep 2
 		setConsulVariables get_docker_ip_address, 9500
-		
+
     sh "docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml logs"
 	rescue SystemExit, Interrupt
 		sh "docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml stop"
@@ -76,7 +121,7 @@ end
 task :build_and_run => [:build_server, :run]
 
 task :docs do
-	container = get_container
+	container = get_container GO_CONTAINER_ARGS
 
 	begin
 		# Get go packages
