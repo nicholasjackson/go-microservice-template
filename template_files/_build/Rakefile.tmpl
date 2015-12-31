@@ -168,7 +168,7 @@ task :e2e do
 		# remove stop running application
 		puts `docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml stop`
 		# remove stopped containers
-		puts `echo y | docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml rm`
+		puts `echo y | docker-compose -f ./dockercompose/#{DOCKER_IMAGE_NAME}/docker-compose.yml rm -v`
 	end
 end
 
