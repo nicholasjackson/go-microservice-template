@@ -1,0 +1,4 @@
+require 'minke'
+
+spec = Gem::Specification.find_by_name 'minke'
+Rake.add_rakelib "#{spec.gem_dir}/lib/minke/rake"

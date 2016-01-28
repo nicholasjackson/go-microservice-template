@@ -1,0 +1,39 @@
+---
+go:
+  namespace: '{{.Namespace}}'
+  application_name: '{{.ServiceName}}'
+docker_registry:
+  url: <%= ENV['DOCKER_REGISTRY_URL'] %>
+  user: <%= ENV['DOCKER_REGISTRY_USER'] %>
+  password: <%= ENV['DOCKER_REGISTRY_PASS'] %>
+  email: <%= ENV['DOCKER_REGISTRY_EMAIL'] %>
+  namespace: <%= ENV['DOCKER_NAMESPACE'] %>
+docker:
+  docker_file: './dockerfile/{{.ServiceName}}/'
+  compose_file: './dockercompose/{{.ServiceName}}/docker-compose.yml'
+  build_args:
+    image: 'golang:latest'
+    env:
+      - 'CGO_ENABLED=0' # used for alpine linux static linking
+    working_directory: '/go/src/{{.Namespace}}/{{.ServiceName}}'
+run:
+  consul_loader:
+    enabled: true
+    config_file: './consul_keys.yml'
+    url: <%= "http://#{ENV['DOCKER_IP']}:9500" %>
+cucumber:
+  consul_loader:
+    enabled: true
+    config_file: './consul_keys.yml'
+    url: <%= "http://#{ENV['DOCKER_IP']}:9500" %>
+  health_check:
+    enabled: true
+    url: <%= "http://#{ENV['DOCKER_IP']}:8001/v1/health" %>
+after_build:
+  copy_assets:
+    -
+      from: <%= "#{ENV['GOPATH']}/src/{{.Namespace}}/{{.ServiceName}}/{{.ServiceName}}" %>
+      to: './dockerfile/{{.ServiceName}}'
+    -
+      from: './swagger_spec/swagger.yml'
+      to: './dockerfile/{{.ServiceName}}/swagger_spec'
