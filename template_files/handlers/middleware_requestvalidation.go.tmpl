@@ -1,0 +1,42 @@
+package handlers
+
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"reflect"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/gorilla/context"{{if .StatsD}}
+	"{{.Namespace}}/{{.ServiceName}}/logging"{{end}}
+)
+
+{{if .StatsD}}func requestValidationHandler(mainHandlerRef string, t reflect.Type, statsD logging.StatsD, next http.Handler) http.Handler{{else}}func requestValidationHandler(t reflect.Type, next http.Handler) http.Handler{{end}} {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		request := reflect.New(t).Interface()
+
+		defer r.Body.Close()
+		data, _ := ioutil.ReadAll(r.Body)
+
+		err := json.Unmarshal(data, &request)
+		if err != nil {
+			http.Error(w, "Invalid Request", http.StatusBadRequest)
+			{{if .StatsD}}statsD.Increment(mainHandlerRef + BAD_REQUEST){{end}}
+			return
+		}
+
+		_, err = govalidator.ValidateStruct(request)
+		if err != nil {
+			fmt.Println("Validation Error:", err)
+			http.Error(w, "Invalid Request", http.StatusBadRequest)
+			{{if .StatsD}}statsD.Increment(mainHandlerRef + INVALID_REQUEST){{end}}
+			return
+		}
+
+		context.Set(r, "request", request)
+		{{if .StatsD}}statsD.Increment(mainHandlerRef + VALID_REQUEST){{end}}
+		next.ServeHTTP(w, r)
+	})
+}

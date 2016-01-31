@@ -1,0 +1,33 @@
+package handlers
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/gorilla/context"{{if .StatsD}}
+	"github.com/transform/api-users/logging"{{end}}
+)
+
+type EchoDependenciesContainer struct {
+	{{if .StatsD}}StatsD logging.StatsD `inject:"statsd"`{{end}}
+}
+
+var EchoDependencies *EchoDependenciesContainer = &EchoDependenciesContainer{}
+
+type Echo struct {
+	Echo string `json:"echo" valid:""`
+}
+
+func EchoHandler(rw http.ResponseWriter, r *http.Request) {
+	{{if .StatsD}}EchoDependencies.StatsD.Increment(ECHO_HANDLER + POST + CALLED){{end}}
+
+	// request is set into the context from the middleware
+	request := context.Get(r, "request").(*Echo)
+	fmt.Println("r: ", request)
+
+	encoder := json.NewEncoder(rw)
+	encoder.Encode(request)
+
+	{{if .StatsD}}EchoDependencies.StatsD.Increment(ECHO_HANDLER + POST + SUCCESS){{end}}
+}

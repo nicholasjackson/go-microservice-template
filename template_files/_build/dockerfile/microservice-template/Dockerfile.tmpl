@@ -15,9 +15,9 @@ ADD config.ctmpl /{{.ServiceName}}/config.ctmpl
 
 # Add server files
 ADD swagger_spec /swagger
-ADD server /{{.ServiceName}}/server
+ADD {{.ServiceName}} /{{.ServiceName}}/{{.ServiceName}}
 
-RUN chmod 755 /{{.ServiceName}}/server
+RUN chmod 755 /{{.ServiceName}}/{{.ServiceName}}
 
 ENTRYPOINT ["/usr/bin/s6-svscan","/etc/s6"]
 CMD []

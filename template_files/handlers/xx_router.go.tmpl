@@ -1,0 +1,37 @@
+package handlers
+
+import (
+	"net/http"
+	"reflect"
+
+	"github.com/gorilla/pat"{{if .StatsD}}
+	"{{.Namespace}}/{{.ServiceName}}/logging"{{end}}
+)
+
+type RouterDependenciesContainer struct {
+	{{if .StatsD}}StatsD logging.StatsD `inject:"statsd"`{{end}}
+}
+
+var RouterDependencies *RouterDependenciesContainer = &RouterDependenciesContainer{}
+
+func GetRouter() *pat.Router {
+	r := pat.New()
+
+	r.Get("/v1/health", HealthHandler)
+
+	{{if .StatsD}}r.Add("POST", "/v1/echo", requestValidationHandler(
+		ECHO_HANDLER+POST,
+		reflect.TypeOf(Echo{}),
+		RouterDependencies.StatsD,
+		http.HandlerFunc(EchoHandler),
+	)){{else}}r.Add("POST", "/v1/echo", requestValidationHandler(
+		reflect.TypeOf(Echo{}),
+		http.HandlerFunc(EchoHandler),
+	)){{end}}
+
+	//Add routing for static routes
+	s := http.StripPrefix("/swagger/", http.FileServer(http.Dir("/swagger")))
+	r.PathPrefix("/swagger/").Handler(s)
+
+	return r
+}

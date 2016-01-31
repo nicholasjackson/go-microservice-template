@@ -7,7 +7,7 @@ import (
 )
 
 type ConfigStruct struct {
-	StatsDServerIP string
+	StatsDServerIP string `json:"stats_d_server"`
 	RootFolder     string
 }
 

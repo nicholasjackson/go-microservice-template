@@ -7,32 +7,24 @@ import (
 	"testing"
 
 	"github.com/facebookgo/inject"
-	"github.com/stretchr/testify/assert"
-	{{if .StatsD}}"github.com/stretchr/testify/mock"{{end}}
+	"github.com/stretchr/testify/assert"{{if .StatsD}}
+	"github.com/stretchr/testify/mock"
+	"{{.Namespace}}/{{.ServiceName}}/mocks"{{end}}
 )
 
-{{if .StatsD}}
-type MockStatsD struct {
-	mock.Mock
-}
+{{if .StatsD}}var healthStatsDMock *mocks.MockStatsD{{end}}
 
-func (m *MockStatsD) Increment(label string) {
-	_ = m.Mock.Called(label)
-}
-
-var statsDMock *MockStatsD
-{{end}}
-
-func TestSetup(t *testing.T) {
+func healthTestSetup(t *testing.T) {
 	// create an injection graph containing the mocked elements we wish to replace
 
 	var g inject.Graph
 
-	{{if .StatsD}}statsDMock = &MockStatsD{}{{end}}
+	{{if .StatsD}}healthStatsDMock = &mocks.MockStatsD{}{{end}}
+	HealthDependencies = &HealthDependenciesContainer{}
 
 	err := g.Provide(
-		&inject.Object{Value: HealthHandlerDependencies},
-		{{if .StatsD}}&inject.Object{Value: statsDMock, Name: "statsd"},{{end}}
+		&inject.Object{Value: HealthDependencies},{{if .StatsD}}
+		&inject.Object{Value: healthStatsDMock, Name: "statsd"},{{end}}
 	)
 
 	if err != nil {
@@ -43,11 +35,13 @@ func TestSetup(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	{{if .StatsD}}statsDMock.Mock.On("Increment", mock.Anything).Return(){{end}}
+	{{if .StatsD}}healthStatsDMock.Mock.On("Increment", mock.Anything).Return(){{end}}
 }
 
 // Simple test to show how we can use the ResponseRecorder to test our HTTP handlers
 func TestHealthHandler(t *testing.T) {
+	healthTestSetup(t)
+
 	var responseRecorder httptest.ResponseRecorder
 	var request http.Request
 
@@ -56,13 +50,14 @@ func TestHealthHandler(t *testing.T) {
 	assert.Equal(t, 200, responseRecorder.Code)
 }
 
-{{if .StatsD}}
 func TestHealthHandlerSetStats(t *testing.T) {
+	healthTestSetup(t)
+
 	var responseRecorder httptest.ResponseRecorder
 	var request http.Request
 
 	HealthHandler(&responseRecorder, &request)
 
-	statsDMock.Mock.AssertCalled(t, "Increment", HEALTH_HANDLER_CALLED)
+	{{if .StatsD}}healthStatsDMock.Mock.AssertCalled(t, "Increment", HEALTH_HANDLER+GET+CALLED)
+	healthStatsDMock.Mock.AssertCalled(t, "Increment", HEALTH_HANDLER+GET+SUCCESS){{end}}
 }
-{{end}}

@@ -33,15 +33,15 @@ func setupInjection() {
 
 	var err error
 
-	{{if .StatsD}}
-	statsdClient, err := statsd.New(global.Config.StatsDServerIP) // reference to a statsd client
+	{{if .StatsD}}statsdClient, err := statsd.New(global.Config.StatsDServerIP) // reference to a statsd client
 	if err != nil {
 		panic(fmt.Sprintln("Unable to create StatsD Client: ", err))
-	}
-	{{end}}
+	}{{end}}
 
 	err = g.Provide(
-		&inject.Object{Value: handlers.HealthHandlerDependencies},{{if .StatsD}}
+		&inject.Object{Value: handlers.RouterDependencies},
+		&inject.Object{Value: handlers.HealthDependencies},
+		&inject.Object{Value: handlers.EchoDependencies},{{if .StatsD}}
 		&inject.Object{Value: statsdClient, Name: "statsd"},{{end}}
 	)
 

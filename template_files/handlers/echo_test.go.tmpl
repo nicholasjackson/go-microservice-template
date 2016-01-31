@@ -1,0 +1,77 @@
+package handlers
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/facebookgo/inject"
+	"github.com/gorilla/context"
+	"github.com/stretchr/testify/assert"{{if .StatsD}}
+	"github.com/stretchr/testify/mock"
+	"{{.Namespace}}/{{.ServiceName}}/mocks"{{end}}
+)
+
+{{if .StatsD}}var echoStatsDMock *mocks.MockStatsD{{end}}
+
+func echoTestSetup(t *testing.T) {
+	// create an injection graph containing the mocked elements we wish to replace
+
+	var g inject.Graph
+
+	{{if .StatsD}}echoStatsDMock = &mocks.MockStatsD{}{{end}}
+	EchoDependencies = &EchoDependenciesContainer{}
+
+	err := g.Provide(
+		&inject.Object{Value: EchoDependencies},{{if .StatsD}}
+		&inject.Object{Value: echoStatsDMock, Name: "statsd"},{{end}}
+	)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if err := g.Populate(); err != nil {
+		fmt.Println(err)
+	}
+
+	{{if .StatsD}}echoStatsDMock.Mock.On("Increment", mock.Anything).Return(){{end}}
+}
+
+func TestEchoHandlerSetStats(t *testing.T) {
+	echoTestSetup(t)
+
+	var responseRecorder httptest.ResponseRecorder
+	var request http.Request
+
+	echo := Echo{Echo: "Hello World"}
+	context.Set(&request, "request", &echo)
+
+	EchoHandler(&responseRecorder, &request)
+
+	{{if .StatsD}}echoStatsDMock.Mock.AssertCalled(t, "Increment", ECHO_HANDLER+POST+CALLED)
+	echoStatsDMock.Mock.AssertCalled(t, "Increment", ECHO_HANDLER+POST+SUCCESS){{end}}
+}
+
+func TestEchoHandlerCorrectlyEchosResponse(t *testing.T) {
+	echoTestSetup(t)
+
+	var responseRecorder *httptest.ResponseRecorder
+	var request http.Request
+
+	responseRecorder = httptest.NewRecorder()
+
+	echo := Echo{Echo: "Hello World"}
+	context.Set(&request, "request", &echo)
+
+	EchoHandler(responseRecorder, &request)
+
+	body := responseRecorder.Body.Bytes()
+	response := Echo{}
+	json.Unmarshal(body, &response)
+
+	assert.Equal(t, 200, responseRecorder.Code)
+	assert.Equal(t, response.Echo, "Hello World")
+}

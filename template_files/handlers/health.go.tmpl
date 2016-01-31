@@ -3,8 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-
-	{{if .StatsD}}"{{.Namespace}}/{{.ServiceName}}/logging"{{end}}
+	{{if .StatsD}}
+	"github.com/nicholasjackson/tester/logging"{{end}}
 )
 
 // This is not particularlly a real world example it mearly shows how a builder or a factory could be injected
@@ -24,13 +24,13 @@ func (b *HealthResponseBuilder) Build() HealthResponse {
 	return hr
 }
 
-type HealthDependencies struct {
+type HealthDependenciesContainer struct {
 	// if not specified will create singleton
 	SingletonBuilder *HealthResponseBuilder `inject:""`
-	{{if .StatsD}}
-	// statsD interface must use a name type as injection cannot infer ducktypes
-	Stats logging.StatsD `inject:"statsd"`
-	{{end}}
+
+	{{if .StatsD}}// statsD interface must use a name type as injection cannot infer ducktypes
+	Stats logging.StatsD `inject:"statsd"`{{end}}
+
 	// if not specified in the graph will automatically create private instance
 	PrivateBuilder *HealthResponseBuilder `inject:"private"`
 }
@@ -39,16 +39,16 @@ type HealthResponse struct {
 	StatusMessage string `json:"status_message"`
 }
 
-var HealthHandlerDependencies *HealthDependencies = &HealthDependencies{}
-
-{{if .StatsD}}const HEALTH_HANDLER_CALLED = "{{.ServiceName}}.health_handler"{{end}}
+var HealthDependencies *HealthDependenciesContainer = &HealthDependenciesContainer{}
 
 func HealthHandler(rw http.ResponseWriter, r *http.Request) {
 	// all HealthHandlerDependencies are automatically created by injection process
-	{{if .StatsD}}HealthHandlerDependencies.Stats.Increment(HEALTH_HANDLER_CALLED){{end}}
+	{{if .StatsD}}HealthDependencies.Stats.Increment(HEALTH_HANDLER + GET + CALLED){{end}}
 
-	response := HealthHandlerDependencies.SingletonBuilder.SetStatusMessage("OK").Build()
+	response := HealthDependencies.SingletonBuilder.SetStatusMessage("OK").Build()
 
 	encoder := json.NewEncoder(rw)
 	encoder.Encode(&response)
+
+	{{if .StatsD}}HealthDependencies.Stats.Increment(HEALTH_HANDLER + GET + SUCCESS){{end}}
 }
