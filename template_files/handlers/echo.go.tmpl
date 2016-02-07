@@ -18,7 +18,7 @@ var EchoDependencies *EchoDependenciesContainer = &EchoDependenciesContainer{}
 // use the validation middleware to automatically validate input
 // github.com/asaskevich/govalidator
 type Echo struct {
-	Echo string `json:"echo" valid:"alphanum,stringlength(1|255),required"`
+	Echo string `json:"echo" valid:"stringlength(1|255),required"`
 }
 
 func EchoHandler(rw http.ResponseWriter, r *http.Request) {
