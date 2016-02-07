@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/context"{{if .StatsD}}
-	"github.com/transform/api-users/logging"{{end}}
+	"github.com/transform/{{.ServiceName}}/logging"{{end}}
 )
 
 type EchoDependenciesContainer struct {

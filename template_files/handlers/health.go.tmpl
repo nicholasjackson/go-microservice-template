@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	{{if .StatsD}}
-	"github.com/nicholasjackson/tester/logging"{{end}}
+	"github.com/nicholasjackson/{{.ServiceName}}/logging"{{end}}
 )
 
 // This is not particularlly a real world example it mearly shows how a builder or a factory could be injected
