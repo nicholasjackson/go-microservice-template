@@ -2,7 +2,7 @@
 This repository allows you to create a scaffold microservice written in Go with full unit and cucumber functional tests.  All code is built and run inside of a docker container to allow predicable builds across multiple environments.  There is also a scaffold production image Dockerfile which contains the basic setup for scaware s6, consul-template and your application.  Thanks to [Alex Sunderland](https://github.com/AgentAntelope) for rewriting the clone script in a more appropriate Go from the original Ruby.
 
 # How is this different from frameworks like [Go Kit](https://github.com/go-kit/kit)?
-Microservice template is not really competion to the excellent Go Kit [https://github.com/go-kit/kit](https://github.com/go-kit/kit), it is also not really a framework more a method of scaffolding your new service. Go microservice template's main aim is to allow you to scaffold your new Microservice with a full build and test pipeline to make Sprint 0 that little bit more painless.  Whilst the feature set is no where near as rich as Go kit I am trying to keep things a little simpler.  Theoretically it would be possible to scaffold a Go Kit service using the template and I may add this as a feature at some point.
+Microservice template is not really competion to the excellent Go Kit [https://github.com/go-kit/kit](https://github.com/go-kit/kit), it is also not really a framework more a method of scaffolding your new service. Go microservice template's main aim is to allow you to scaffold your new Microservice, building a Docker image and scaffolding the functional tests to make Sprint 0 that little bit more painless.  Whilst the feature set is no where near as rich as Go kit I am trying to keep things a little simpler.  Theoretically it would be possible to scaffold a Go Kit service using the template and I may add this as a feature at some point.
 
 # How to use
 1. run `go run generate.go`
@@ -74,3 +74,6 @@ If you have chosen to include the StatsD client for testing purposes compose wil
 
 # Example Service
 [https://github.com/nicholasjackson/helloworld](https://github.com/nicholasjackson/helloworld)
+
+# A little light reading detailing the concepts behind the framework
+[http://nicholasjackson.github.io/microservices/go/building-and-testing-microservices-part1/](http://nicholasjackson.github.io/microservices/go/building-and-testing-microservices-part1/)
