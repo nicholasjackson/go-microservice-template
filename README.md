@@ -1,6 +1,9 @@
 # microservice-template
 This repository allows you to create a scaffold microservice written in Go with full unit and cucumber functional tests.  All code is built and run inside of a docker container to allow predicable builds across multiple environments.  There is also a scaffold production image Dockerfile which contains the basic setup for scaware s6, consul-template and your application.  Thanks to [Alex Sunderland](https://github.com/AgentAntelope) for rewriting the clone script in a more appropriate Go from the original Ruby.
 
+# How is this different from frameworks like [Go Kit](https://github.com/go-kit/kit)?
+Microservice template is not really competion to the excellent Go Kit [https://github.com/go-kit/kit](https://github.com/go-kit/kit), it is also not really a framework more a method of scaffolding your new service. Go microservice template's main aim is to allow you to scaffold your new Microservice with a full build and test pipeline to make Sprint 0 that little bit more painless.  Whilst the feature set is no where near as rich as Go kit I am trying to keep things a little simpler.  Theoretically it would be possible to scaffold a Go Kit service using the template and I may add this as a feature at some point.
+
 # How to use
 1. run `go run generate.go`
 2. Enter the namespace for the service this is generally the same as your github path i.e github.com/nicholasjackson
@@ -25,6 +28,13 @@ eval "$(docker-machine env default)"
 ```
 
 # Building and testing your code
+To build your new service go-microservice-template uses the Minke gem [https://github.com/nicholasjackson/minke](https://github.com/nicholasjackson/minke), centralising the build scripts within a gem allows for versioning and updating build scripts without having to directly update the build files.  Docker updated, broke the build?  Minke solves this problem and you no longer need to update 100 different services, just get the latest version of the Gem.  
+
+All config and Docker / Docker Compose files are stored in the _build folder inside your newly scaffolded service.  Before running any of the build and run commands you will first need to change to this folder and then install the Gem dependencies using:
+``` 
+bundle install
+```
+
 ## Test
 To execute the unit tests and to fetch dependencies run...
 ```
@@ -61,3 +71,6 @@ When you run the template a local Consul server is started to provide KeyValues 
 
 # StatsD
 If you have chosen to include the StatsD client for testing purposes compose will start a standard Graphite / Carbon stack, you can access Graphite from http://[DOCKER_IP]:8080
+
+# Example Service
+[https://github.com/nicholasjackson/helloworld](https://github.com/nicholasjackson/helloworld)
