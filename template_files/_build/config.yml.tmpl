@@ -1,7 +1,7 @@
 ---
-go:
-  namespace: '{{.Namespace}}'
-  application_name: '{{.ServiceName}}'
+language: go
+namespace: '{{.Namespace}}'
+application_name: '{{.ServiceName}}'
 docker_registry:
   url: <%= ENV['DOCKER_REGISTRY_URL'] %>
   user: <%= ENV['DOCKER_REGISTRY_USER'] %>
