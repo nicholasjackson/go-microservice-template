@@ -18,12 +18,16 @@ func LoadConfig(config string, rootfolder string) error {
 
 	file, err := os.Open(config)
 	if err != nil {
-		return fmt.Errorf("Unable to open config")
+		return fmt.Errorf("Unable to open config: %v", err)
 	}
 
 	decoder := json.NewDecoder(file)
+
 	Config = ConfigStruct{}
-	err = decoder.Decode(&Config)
+	if err = decoder.Decode(&Config); err != nil {
+		return fmt.Errorf("Unable to decode config: %v", err)
+	}
+
 	Config.RootFolder = rootfolder
 
 	fmt.Println(Config)
