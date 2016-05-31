@@ -1,4 +1,7 @@
 # go-microservice-template
+
+# This repository has been depricated since the 1.0 release of Minke please see [https://github.com/nicholasjackson/minke-generator-go](https://github.com/nicholasjackson/minke-generator-go) for the latest version.
+
 This repository allows you to create a scaffold microservice written in Go with full unit and cucumber functional tests.  All code is built and run inside of a docker container to allow predicable builds across multiple environments.  There is also a scaffold production image Dockerfile which contains the basic setup for scaware s6, consul-template and your application.  Thanks to [Alex Sunderland](https://github.com/AgentAntelope) for rewriting the clone script in a more appropriate Go from the original Ruby.
 
 # How is this different from frameworks like [Go Kit](https://github.com/go-kit/kit)?
